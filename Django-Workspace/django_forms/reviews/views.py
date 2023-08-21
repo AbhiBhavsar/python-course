@@ -1,20 +1,36 @@
+from reviews.models import Review
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.views import View
+from django.views.generic.base import TemplateView
 from .form import ReviewForm
 
 # Create your views here.
 
 
-def review(request):
-    if request.method == 'POST':
-        form = ReviewForm(request.POST)
-        # print(form.cleaned_data)
-        if form.is_valid():
-            return HttpResponseRedirect('/thank-you')
-    else:
+class ReviewView(View):
+    def get(self, request):
         form = ReviewForm()
-    return render(request, 'reviews/review.html', {"form": form})
 
+        return render(request, "reviews/review.html", {
+            "form": form
+        })
 
-def thank_you(request):
-    return render(request, 'reviews/thank-you.html')
+    def post(self, request):
+        form = ReviewForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect("/thank-you")
+
+        return render(request, "reviews/review.html", {
+            "form": form
+        })
+
+class ThankyouView(TemplateView):
+    template_name= "reviews/thank-you.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["message"] = 'This works!'
+        return context
+    
